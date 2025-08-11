@@ -76,13 +76,11 @@ def check_zyn_stock():
 
     # Find the "Add to Cart" button. Its disabled status is the most reliable indicator.
     add_to_cart_button = soup.find('button', {'x-ref': 'submitButton'})
-    product_name_tag = soup.find_all('h1')
-    for name in product_name_tag:
-        name_strip = name.get_text(strip=True)
-        if name_strip == 'Welcome to ZYN.com':
-            continue
-        product_name_tag = name_strip
-    product_name = product_name_tag
+
+    # Find the first h1 tag that does NOT contain the generic welcome message.
+    # This is more robust than the previous loop.
+    name_tag = soup.find(lambda tag: tag.name == 'h1' and 'Welcome to ZYN.com' not in tag.get_text())
+    product_name = name_tag.get_text(strip=True) if name_tag else "Cuisinart Compact Bullet Ice Maker"
 
     if not add_to_cart_button:
         print("Could not find the 'Add to Cart' button. The page structure may have changed.")

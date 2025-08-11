@@ -1,11 +1,13 @@
-import os
-import requests
-from bs4 import BeautifulSoup
 import http.client
+import os
 import urllib.parse
 from datetime import datetime
 
+import requests
+from bs4 import BeautifulSoup
+
 LOG_FILE = 'zyn_stock_log.txt'
+
 
 def log_status(message):
     """Appends a status message to the log file."""
@@ -15,6 +17,7 @@ def log_status(message):
             f.write(f"{message}\n")
     except Exception as e:
         print(f"❌ Failed to write to log file: {e}")
+
 
 def send_pushover_notification(product_name, product_url):
     """Sends a formatted push notification using Pushover when an item is in stock."""
@@ -27,7 +30,7 @@ def send_pushover_notification(product_name, product_url):
         return
 
     title = "ZYN Stock Alert: Item is Back in Stock!"
-    message = f"The item '{product_name}' is now available for purchase.\n\nURL: {product_url}"
+    message = f"'{product_name}' is now available for purchase!\n\nURL: {product_url}"
 
     try:
         conn = http.client.HTTPSConnection("api.pushover.net:443")
@@ -73,8 +76,13 @@ def check_zyn_stock():
 
     # Find the "Add to Cart" button. Its disabled status is the most reliable indicator.
     add_to_cart_button = soup.find('button', {'x-ref': 'submitButton'})
-    product_name_tag = soup.find('h1')
-    product_name = product_name_tag.get_text(strip=True) if product_name_tag else "Cuisinart Compact Bullet Ice Maker"
+    product_name_tag = soup.find_all('h1')
+    for name in product_name_tag:
+        name_strip = name.get_text(strip=True)
+        if name_strip == 'Welcome to ZYN.com':
+            continue
+        product_name_tag = name_strip
+    product_name = product_name_tag
 
     if not add_to_cart_button:
         print("Could not find the 'Add to Cart' button. The page structure may have changed.")

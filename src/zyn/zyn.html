@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zyn Scraper Results</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Apply a custom font for better aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+
+<div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl max-w-7xl w-full text-center">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Zyn Stock Checker Log</h1>
+    <p class="text-gray-600 mb-6">
+        This is a live log of the automated stock checker for the Zyn Cuisinart Ice Maker.
+        It runs every hour. The most recent check is at the top.
+    </p>
+    <!-- This container will hold the log data -->
+    <div id="log-container" class="bg-gray-800 text-white p-4 rounded-lg text-left overflow-x-auto h-96">
+        <pre id="log-content" class="whitespace-pre-wrap">Loading log...</pre>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // The path to the log file, relative to this HTML file's location.
+        const logFilePath = '../../scrapers/zyn/zyn_stock_log.txt';
+
+        const logContent = document.getElementById('log-content');
+
+        async function displayLog() {
+            try {
+                const response = await fetch(`${logFilePath}?t=${new Date().getTime()}`); // Add cache-busting parameter
+                if (!response.ok) {
+                    throw new Error(`File not found or error loading file (Status: ${response.status})`);
+                }
+
+                const logText = await response.text();
+                const logLines = logText.trim().split('\n');
+
+                if (logLines.length === 0 || (logLines.length === 1 && logLines[0] === '')) {
+                    logContent.textContent = 'No log entries found yet. The scraper may not have run.';
+                    return;
+                }
+
+                // Reverse the logs to show the most recent first and join back into a string
+                logContent.textContent = logLines.reverse().join('\n');
+
+            } catch (error) {
+                console.error('Error loading log file:', error);
+                logContent.textContent = 'Could not load log data. The log file might not exist yet.';
+                logContent.parentElement.style.borderColor = '#ef4444'; // Red border on error
+            }
+        }
+
+        displayLog();
+    });
+</script>

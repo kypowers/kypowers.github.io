@@ -1,0 +1,40 @@
+name: Run ZYN Stock Checker
+
+on:
+  # Schedule to run at the top of every hour
+  schedule:
+    - cron: '0 * * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scrapers/zyn/requirements.txt
+
+      - name: Run the ZYN stock scraper
+        env:
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+          USER_TOKEN: ${{ secrets.USER_TOKEN }}
+        run: python scrapers/zyn/zyn_scraper.py
+
+      - name: Commit and push if log file changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add zyn_stock_log.txt
+          git commit -m "Automated ZYN scrape: Update log" || echo "No changes to commit"
+          git push

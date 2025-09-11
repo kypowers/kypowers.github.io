@@ -11,6 +11,16 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Make table headers clickable for sorting */
+        thead th {
+            cursor: pointer;
+        }
+
+        /* Reserve space for the sort indicator to prevent layout shift */
+        .sort-indicator {
+            width: 1em;
+        }
     </style>
 </head>
 
@@ -41,69 +51,150 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const csvFilePath = '../../scrapers/ancient_owls/product_database.csv';
+        // The scraper now uses a JSON database. Let's point to that.
+        const jsonFilePath = '../../scrapers/ancient_owls/product_database.json';
         const tableContainer = document.getElementById('table-container');
+        let sortState = {column: null, direction: 'asc'};
 
         /**
-         * Parses a single row of a CSV string, handling quoted fields.
-         * @param {string} rowString - The string for a single CSV row.
-         * @returns {string[]} - An array of cell values.
+         * Filters the table rows based on the text entered into the header filter inputs.
          */
-        function parseCsvRow(rowString) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < rowString.length; i++) {
-                const char = rowString[i];
-                const nextChar = rowString[i + 1];
+        function filterTable() {
+            const table = tableContainer.querySelector('table');
+            if (!table) return;
 
-                if (char === '"' && !inQuotes) {
-                    inQuotes = true;
-                } else if (char === '"' && inQuotes && nextChar === '"') {
-                    current += '"'; // It's an escaped quote
-                    i++; // Skip the next quote
-                } else if (char === '"' && inQuotes) {
-                    inQuotes = false;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current);
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            result.push(current);
-            return result;
+            const filters = Array.from(table.querySelectorAll('thead th input')).map(input => input.value.toLowerCase());
+            const rows = table.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let visible = true;
+
+                cells.forEach((cell, index) => {
+                    const cellText = cell.textContent.toLowerCase();
+                    const filterText = filters[index];
+                    if (filterText && !cellText.includes(filterText)) {
+                        visible = false;
+                    }
+                });
+
+                row.style.display = visible ? '' : 'none';
+            });
         }
 
-        async function displayCsvAsTable() {
+        /**
+         * Sorts the table by a given column index and direction.
+         * @param {number} columnIndex - The index of the column to sort by.
+         * @param {string} direction - 'asc' or 'desc'.
+         */
+        function sortTable(columnIndex, direction) {
+            const table = tableContainer.querySelector('table');
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            const sortedRows = rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+                const cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+
+                // Use localeCompare for proper string sorting, including numbers within strings
+                const comparison = cellA.localeCompare(cellB, undefined, {numeric: true});
+
+                return direction === 'asc' ? comparison : -comparison;
+            });
+
+            // Re-append rows in sorted order. This moves the DOM elements, no need to clear first.
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+
+        /**
+         * Updates the visual indicators (arrows) in the table headers to show the current sort order.
+         */
+        function updateSortIndicators() {
+            const table = tableContainer.querySelector('table');
+            if (!table) return;
+
+            // Clear all indicators first
+            table.querySelectorAll('thead th .sort-indicator').forEach(span => {
+                span.textContent = '';
+            });
+
+            if (sortState.column !== null) {
+                const activeHeader = table.querySelector(`thead th[data-column-index="${sortState.column}"] .sort-indicator`);
+                if (activeHeader) {
+                    activeHeader.textContent = sortState.direction === 'asc' ? ' ▲' : ' ▼';
+                }
+            }
+        }
+
+        async function displayJsonAsTable() {
             try {
-                const response = await fetch(csvFilePath);
+                const response = await fetch(jsonFilePath);
                 if (!response.ok) {
                     throw new Error(`File not found or error loading file (Status: ${response.status})`);
                 }
 
-                const csvText = await response.text();
-                const rows = csvText.trim().split('\n');
+                const jsonData = await response.json();
+                // The JSON is an object of objects, convert it to an array
+                const products = Object.values(jsonData);
 
-                if (rows.length < 2) {
-                    tableContainer.innerHTML = '<p class="p-4 text-gray-500">No new products have been found yet. Check back later!</p>';
+                if (products.length === 0) {
+                    tableContainer.innerHTML = '<p class="p-4 text-gray-500">No products have been found yet. Check back later!</p>';
                     return;
                 }
 
                 const table = document.createElement('table');
                 table.className = 'min-w-full divide-y divide-gray-200';
 
-                // --- Create Table Header ---
+                // --- Create Table Header with Filter Inputs ---
                 const thead = document.createElement('thead');
                 thead.className = 'bg-gray-50';
                 const headerRow = document.createElement('tr');
-                const headers = parseCsvRow(rows.shift());
-                const urlColumnIndex = headers.indexOf('url'); // Find the URL column
+                // Get headers from the keys of the first product object
+                const headers = Object.keys(products[0]);
+                const urlColumnIndex = headers.indexOf('url');
 
-                headers.forEach(headerText => {
+                headers.forEach((headerText, index) => {
                     const th = document.createElement('th');
                     th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
-                    th.textContent = headerText.replace(/_/g, ' '); // Make headers more readable
+                    th.dataset.columnIndex = index; // Store column index for sorting
+
+                    // Header Text and Sort Indicator
+                    const headerLabel = document.createElement('div');
+                    headerLabel.className = 'flex items-center';
+                    headerLabel.textContent = headerText.replace(/_/g, ' ');
+
+                    const sortIndicator = document.createElement('span');
+                    sortIndicator.className = 'sort-indicator ml-1';
+                    headerLabel.appendChild(sortIndicator);
+
+                    th.appendChild(headerLabel);
+
+                    // Add click listener to the header for sorting
+                    th.addEventListener('click', (e) => {
+                        // Don't sort if the click was on the input field itself
+                        if (e.target.tagName === 'INPUT') return;
+
+                        if (sortState.column === index) {
+                            // If clicking the same column, toggle direction
+                            sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            // If clicking a new column, set it and default to ascending
+                            sortState.column = index;
+                            sortState.direction = 'asc';
+                        }
+                        sortTable(sortState.column, sortState.direction);
+                        updateSortIndicators();
+                    });
+
+                    // Filter Input
+                    const filterInput = document.createElement('input');
+                    filterInput.type = 'text';
+                    filterInput.placeholder = `Filter ${headerText.replace(/_/g, ' ')}...`;
+                    filterInput.className = 'mt-1 p-1 border rounded w-full text-xs font-normal text-gray-700';
+                    filterInput.addEventListener('input', filterTable);
+                    th.appendChild(filterInput);
+
                     headerRow.appendChild(th);
                 });
                 thead.appendChild(headerRow);
@@ -111,18 +202,18 @@
                 // --- Create Table Body ---
                 const tbody = document.createElement('tbody');
                 tbody.className = 'bg-white divide-y divide-gray-200';
-                rows.forEach(rowText => {
+                products.forEach(product => {
                     const row = document.createElement('tr');
-                    const cells = parseCsvRow(rowText);
-                    cells.forEach((cellText, index) => {
+                    headers.forEach((header, index) => {
+                        const cellText = product[header];
                         const td = document.createElement('td');
                         td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-left';
-                        // If this is the URL column, make it a clickable link
+
                         if (index === urlColumnIndex) {
                             const link = document.createElement('a');
                             link.href = cellText;
                             link.textContent = 'View Product';
-                            link.target = '_blank'; // Open in a new tab
+                            link.target = '_blank';
                             link.rel = 'noopener noreferrer';
                             link.className = 'text-blue-500 hover:underline';
                             td.appendChild(link);
@@ -137,16 +228,15 @@
                 table.appendChild(thead);
                 table.appendChild(tbody);
 
-                // Clear the "Loading..." message and add the new table
                 tableContainer.innerHTML = '';
                 tableContainer.appendChild(table);
 
             } catch (error) {
-                console.error('Error loading or parsing CSV:', error);
+                console.error('Error loading or parsing JSON:', error);
                 tableContainer.innerHTML = `<p class="p-4 text-red-500">Could not load product data. The results file might not exist yet or there was an error.</p>`;
             }
         }
 
-        displayCsvAsTable();
+        displayJsonAsTable();
     });
 </script>

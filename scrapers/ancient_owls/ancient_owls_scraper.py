@@ -89,7 +89,7 @@ def scrape_products_from_category(category_url):
 
         price_tag = item.find('div', class_='price')
         # Clean up price text, which can be complex (e.g., "From $40.00 - $45.00")
-        price = ' '.join(price_tag.get_text(strip=True, separator=' ').split()) if price_tag else 'N/A'
+        price = ' '.join(price_tag.get_text(separator=" ", strip=True).split()) if price_tag else 'N/A'
 
         # Check if the "Sold Out" div exists
         is_sold_out = "Yes" if item.find('div', class_='so') else "No"
@@ -123,23 +123,23 @@ def save_to_csv(data, filename='new_products.csv'):
     print(f"Data successfully saved to {filename}")
 
 
-def load_seen_hashes(filename='seen_products_hashes.json'):
-    """Loads a set of previously seen quote hashes from a JSON file."""
+def load_product_database(filename='product_database.json'):
+    """Loads the product database from a JSON file."""
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            return set(json.load(f))
-    except FileNotFoundError:
-        return set()  # Return an empty set if the file doesn't exist yet
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}  # Return an empty dict if file doesn't exist or is empty/corrupt
 
 
-def save_seen_hashes(hashes, filename='seen_products_hashes.json'):
-    """Saves a set of quote hashes to a JSON file."""
+def save_product_database(database, filename='product_database.json'):
+    """Saves the product database to a JSON file."""
     with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(list(hashes), f, indent=2)
-    print(f"Updated hashes saved to {filename}")
+        json.dump(database, f, indent=2)
+    print(f"Updated product database saved to {filename}")
 
 
-def send_pushover_notification(new_products):
+def send_pushover_notification(title, products):
     """Sends a formatted push notification using Pushover."""
     import http.client
     import urllib.parse
@@ -152,9 +152,7 @@ def send_pushover_notification(new_products):
         print("Please set APP_TOKEN and USER_TOKEN secrets in your repository.")
         return
 
-    product_count = len(new_products)
-    title = f"Scraper: Found {product_count} New Product(s)!"
-    message_lines = [f"- {p['name']} ({p['price']})" for p in new_products]
+    message_lines = [f"- {p['name']} ({p['price']})" for p in products]
     message_body = "\n".join(message_lines)
 
     try:
@@ -181,13 +179,12 @@ def main():
     """
     Main function to run the scraper.
     """
-    SEEN_HASHES_FILE = 'seen_products_hashes.json'
+    PRODUCT_DATABASE_FILE = 'product_database.json'
     NEW_PRODUCTS_FILE = 'new_products.csv'
 
     base_url = 'https://www.ancientowlnaturals.com/'
 
     # Step 1: Get all the product category links from the main page.
-    # This corresponds to the lines you were interested in.
     categories = get_category_links(base_url)
 
     if not categories:
@@ -208,28 +205,54 @@ def main():
 
     if not all_products:
         print("Scraping complete, but no products were found.")
+        # If no products are found, the database should be empty.
+        save_product_database({}, PRODUCT_DATABASE_FILE)
         return
 
-    # Step 3: Identify new products by comparing hashes
-    seen_hashes = load_seen_hashes(SEEN_HASHES_FILE)
+    # Step 3: Identify new and restocked products by comparing with the database
+    previous_db = load_product_database(PRODUCT_DATABASE_FILE)
+    current_db = {}
     newly_found_products = []
+    restocked_products = []
 
     for product in all_products:
         # A product's URL is a great unique identifier
         product_hash = hashlib.sha256(product['url'].encode('utf-8')).hexdigest()
 
-        if product_hash not in seen_hashes:
-            newly_found_products.append(product)
-            seen_hashes.add(product_hash)
+        # Add current product state to the new database for saving later
+        current_db[product_hash] = {
+            'name': product['name'],
+            'url': product['url'],
+            'sold_out': product['sold_out']
+        }
 
-    # Step 4: Save new products and update seen hashes
+        previous_product_state = previous_db.get(product_hash)
+
+        if not previous_product_state:
+            # New product
+            newly_found_products.append(product)
+        else:
+            # Existing product, check for restock
+            if previous_product_state.get('sold_out') == "Yes" and product.get('sold_out') == "No":
+                restocked_products.append(product)
+
+    # Step 4: Report, notify, and save
     if newly_found_products:
         print(f"\nFound {len(newly_found_products)} new product(s)!")
         save_to_csv(newly_found_products, filename=NEW_PRODUCTS_FILE)
-        save_seen_hashes(seen_hashes, SEEN_HASHES_FILE)
-        send_pushover_notification(newly_found_products)
-    else:
-        print("\nScraping complete. No new products found since the last run.")
+        title = f"Scraper: Found {len(newly_found_products)} New Product(s)!"
+        send_pushover_notification(title, newly_found_products)
+
+    if restocked_products:
+        print(f"\nFound {len(restocked_products)} restocked product(s)!")
+        title = f"Scraper: {len(restocked_products)} Product(s) Back in Stock!"
+        send_pushover_notification(title, restocked_products)
+
+    if not newly_found_products and not restocked_products:
+        print("\nScraping complete. No new or restocked products found since the last run.")
+
+    # Save the current state of all found products as the new database
+    save_product_database(current_db, PRODUCT_DATABASE_FILE)
 
 
 if __name__ == '__main__':

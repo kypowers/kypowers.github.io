@@ -1,4 +1,4 @@
-name: Run Daily Scraper
+name: Run Ancient Owl Scraper
 
 on:
   # Schedule to run once a day at 8:00 AM

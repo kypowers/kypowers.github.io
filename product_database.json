@@ -63,5 +63,35 @@
     "name": "Lip Balm",
     "url": "https://www.ancientowlnaturals.com/collections/beauty-products/products/lip-balm",
     "sold_out": "No"
+  },
+  "80c9fb641562837e78acee3af8c1b1999a6cd8a00cf674a9f7c43ba6ba0f97f4": {
+    "name": "Rose Quartz \ud83c\udf39 Candle Holder",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/rose-quartz-candle-holder",
+    "sold_out": "No"
+  },
+  "9a73579019ee3da5b01ef09841c3cacd018c54a594b5ecc1b79c8723046da518": {
+    "name": "Gua Sha Crystals",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/gua-sha-blue-quartz",
+    "sold_out": "No"
+  },
+  "90dda836c8f6529b818d366094710398965e02c6f2d5a5c80a99a673c4adf71c": {
+    "name": "Vanadinite Clusters",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/vanadinite-clusters",
+    "sold_out": "No"
+  },
+  "ec7668cd6c9f3cc1b226c20e3e3af1f2f1abf377277b29509b870a7d48b3c8bb": {
+    "name": "Chrysocolla Obelisk",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/chrysocolla-obelisk",
+    "sold_out": "Yes"
+  },
+  "02e95422fa1f76668b1c247f950eceb626a7515d01e1252902af752099947a39": {
+    "name": "Rutilated Quartz Points",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/rutilated-quartz-points",
+    "sold_out": "Yes"
+  },
+  "e27220d157725f4d1e8c2150a83997961e8239709a8504f298d2bd5cd8ff93de": {
+    "name": "Natural Clear Quartz Points",
+    "url": "https://www.ancientowlnaturals.com/collections/crystals/products/high-quality-raw-clear-quartz-points",
+    "sold_out": "No"
   }
 }

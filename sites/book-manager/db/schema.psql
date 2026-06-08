@@ -1,0 +1,89 @@
+-- Create Core Lookup Tables
+CREATE TABLE IF NOT EXISTS categories (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS series (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS author (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    CONSTRAINT unique_author_name UNIQUE (first_name, last_name)
+);
+
+CREATE TABLE IF NOT EXISTS narrator (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    CONSTRAINT unique_narrator_name UNIQUE (first_name, last_name)
+);
+
+CREATE TABLE IF NOT EXISTS tropes (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS creatures (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Create Main Books Table
+CREATE TABLE IF NOT EXISTS books (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title TEXT NOT NULL,
+    series_id BIGINT REFERENCES series(id) ON DELETE SET NULL,
+    series_order NUMERIC,
+    category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    spice INT CHECK (spice BETWEEN 0 AND 5),
+    description TEXT,
+    read_date DATE
+);
+
+CREATE TABLE IF NOT EXISTS book_category (
+    book_id BIGINT REFERENCES books(id) ON DELETE CASCADE,
+    category_id BIGINT REFERENCES categories(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, category_id)
+);
+
+-- Create Junction Tables (Many-to-Many Relationships)
+CREATE TABLE IF NOT EXISTS book_author (
+    book_id BIGINT REFERENCES books(id) ON DELETE CASCADE,
+    author_id BIGINT REFERENCES author(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, author_id)
+);
+
+CREATE TABLE IF NOT EXISTS book_narrator (
+    book_id BIGINT REFERENCES books(id) ON DELETE CASCADE,
+    narrator_id BIGINT REFERENCES narrator(id) ON DELETE CASCADE,
+    performance_rating INT CHECK (performance_rating BETWEEN 1 AND 5),
+    PRIMARY KEY (book_id, narrator_id)
+);
+
+CREATE TABLE IF NOT EXISTS book_tropes (
+    book_id BIGINT REFERENCES books(id) ON DELETE CASCADE,
+    trope_id BIGINT REFERENCES tropes(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, trope_id)
+);
+
+CREATE TABLE IF NOT EXISTS book_creatures (
+    book_id BIGINT REFERENCES books(id) ON DELETE CASCADE,
+    creature_id BIGINT REFERENCES creatures(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, creature_id)
+);
+
+-- Performance Optimization Indexes
+CREATE INDEX IF NOT EXISTS idx_books_series ON books(series_id);
+CREATE INDEX IF NOT EXISTS idx_books_category ON books(category_id);
+CREATE INDEX IF NOT EXISTS idx_books_read_date ON books(read_date);
+
+CREATE INDEX IF NOT EXISTS idx_ba_author ON book_author(author_id);
+CREATE INDEX IF NOT EXISTS idx_bn_narrator ON book_narrator(narrator_id);
+CREATE INDEX IF NOT EXISTS idx_bt_trope ON book_tropes(trope_id);
+CREATE INDEX IF NOT EXISTS idx_bc_creature ON book_creatures(creature_id);

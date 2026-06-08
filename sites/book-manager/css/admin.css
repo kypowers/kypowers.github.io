@@ -1,0 +1,126 @@
+:root {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    line-height: 1.4
+}
+
+body {
+    max-width: 980px;
+    margin: 28px auto;
+    padding: 0 18px;
+    color: #111
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+h1 {
+    font-size: 1.4rem;
+    text-align: center;
+    margin: 0
+}
+
+h2 {
+    margin-top: 16px !important;
+    margin-bottom: 16px;
+}
+
+.panel {
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    border-radius: 8px;
+    background: #fff;
+    margin: 16px
+}
+
+label {
+    display: block;
+    margin: 8px 0 4px;
+    font-size: 0.9rem
+}
+
+input[type=text], input[type=date], select, textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px
+}
+
+textarea {
+    min-height: 80px
+}
+
+.row {
+    display: flex;
+    gap: 12px
+}
+
+.row > * {
+    flex: 1
+}
+
+button, .button {
+    background: #0369a1;
+    color: white;
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.navBtn {
+    background: #0369a1;
+    color: white;
+    border: 0;
+    padding: 8px 12px !important;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.buttonGrp {
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 16px
+}
+
+.muted {
+    color: #6b7280;
+    font-size: 0.9rem
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center
+}
+
+.meta {
+    font-size: 0.9rem;
+    color: #374151
+}
+
+.small {
+    font-size: 0.85rem;
+    color: #6b7280
+}
+
+.danger {
+    background: #dc2626
+}
+
+.inline {
+    display: inline-block;
+    margin-left: 8px
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}

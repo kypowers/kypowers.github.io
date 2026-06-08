@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+
+<!-- Left Sidebar Menu Section -->
+<div class="sidebar">
+    <h2>Book Manager</h2>
+    <ul>
+        <li><a href="../index.html">Dashboard Home</a></li>
+        <li><a href="./books.html">Books</a></li>
+        <li><a href="./search.html">Search</a></li>
+    </ul>
+</div>
+
+<!-- Right Workspace Tracking Window -->
+<div class="main-content">
+    <div class="header">
+        <h1>Search Books</h1>
+
+        <section class="panel" id="bookPanel" style="display:none">
+            <div class="flex-between">
+                <h2 style="margin:0">Search</h2>
+                <div class="controls">
+                    <button id="refreshBtn" title="Reload list">Clear</button>
+                </div>
+            </div>
+
+            <div id="booksContainer" style="margin-top:12px">
+                <ul class="book-list" id="bookList"></ul>
+            </div>
+
+            <hr style="margin:16px 0"/>
+
+            <form id="bookForm">
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" required/>
+
+                <div class="row">
+                    <div>
+                        <label for="series">Series</label>
+                        <select id="series"></select>
+                    </div>
+                    <div>
+                        <label for="category">Category</label>
+                        <select id="category"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div>
+                        <label for="rating">Rating (1-5)</label>
+                        <select id="rating">
+                            <option value="">—</option>
+                            <option>⭐️</option>
+                            <option>⭐️⭐️</option>
+                            <option>⭐️⭐️⭐️</option>
+                            <option>⭐️⭐️⭐️⭐️</option>
+                            <option>⭐️⭐️⭐️⭐️⭐️</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="spice">Spice (0-5)</label>
+                        <select id="spice">
+                            <option value="">—</option>
+                            <option>0</option>
+                            <option>🌶️</option>
+                            <option>🌶️🌶️</option>
+                            <option>🌶️🌶️🌶️</option>
+                            <option>🌶️🌶️🌶️🌶️</option>
+                            <option>🌶️🌶️🌶️🌶️🌶️</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <label for="authors">Authors</label>
+                <select id="authors" multiple size="4" style="min-height:64px"></select>
+
+
+                <div style="margin-top:10px;display:flex;gap:8px">
+                    <button type="submit">Search</button>
+                    <button type="button" id="clearForm" style="background:#6b7280">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <div id="msg" style="position:fixed;right:18px;bottom:18px;z-index:999"></div>
+
+    </div>
+
+
+</div>
+
+</body>
+</html>

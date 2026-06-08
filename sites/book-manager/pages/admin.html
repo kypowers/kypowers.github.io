@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Admin - Book Manager</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<h1>Admin</h1>
+
+<div class="buttonGrp">
+    <a href="../index.html" class="navBtn">Home</a>
+</div>
+
+<section class="panel">
+    <h2 style="margin-top:0">Supabase Connection</h2>
+    <div class="row">
+        <div>
+            <label for="supabaseKey">Secret Key</label>
+            <input id="supabaseKey" type="text" placeholder="secret-key"/>
+        </div>
+    </div>
+    <div class="buttonGrp">
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" style="background:#6b7280">Disconnect</button>
+        <div class="small inline" id="connectionStatus">Not connected</div>
+    </div>
+    <p class="muted" style="margin-top:10px">Tip: store your URL & anon key locally (saved in localStorage). For
+        production use server-side keys and secure handling.</p>
+</section>
+
+
+<!-- Use module so ES module `import` in admin.js works in the browser -->
+<script type="module" src="../scripts/admin.js"></script>
+
+</body>
+</html>

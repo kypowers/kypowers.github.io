@@ -19,7 +19,7 @@ function loadSupabaseLibrary() {
 // 2. SAFE CONFIGURATION & INITIALIZATION
 // ==========================================
 const SUPABASE_URL = 'https://zloscdxigeruokwuppor.supabase.co';
-const SUPABASE_ANON_KEY = '';
+const SUPABASE_ANON_KEY = 'sb_publishable_XsU1ogWFtYNKajfz7Oo69Q_dKYRYJfo';
 
 let supabaseClient = null;
 

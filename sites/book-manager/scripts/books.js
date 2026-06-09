@@ -17,7 +17,7 @@ async function getTotalBooksCount() {
 
     try {
         const {count, error} = await supabase
-            .from('books')
+            .from('book')
             .select('*', {count: 'exact', head: true});
 
         if (error) throw error;
@@ -50,7 +50,7 @@ async function loadBooks(page = 0) {
 
         // Fetch books with related data (authors and series)
         const {data: books, error} = await supabase
-            .from('books')
+            .from('book')
             .select(`
                 id,
                 title,
@@ -140,8 +140,8 @@ async function openBookModal(bookId) {
 
     try {
         // Fetch full book details with all related data
-        const { data: books, error } = await supabase
-            .from('books')
+        const {data: books, error} = await supabase
+            .from('book')
             .select(`
                 id,
                 title,

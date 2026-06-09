@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchAndRenderProducts() {
     const {data, error} = await supabase
-        .from('books')
+        .from('book')
         .select('*');
 
     if (error) {
@@ -56,7 +56,7 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Example function to fetch books and display them
 async function fetchBooks() {
     const {data, error} = await supabase
-        .from('books')
+        .from('book')
         .select(`
             id, 
             title, 

@@ -26,7 +26,7 @@ async function loadBooks() {
     }
 
     try {
-        const {data, error} = await supabase.from('books').select('*');
+        const {data, error} = await supabase.from('book').select('*');
         if (error) throw error;
         if (!data || data.length === 0) {
             el.textContent = 'No books found.';

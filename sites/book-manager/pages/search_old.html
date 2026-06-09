@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Book Manager</title>
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Book Manager</h1>
+</header>
+
+<div class="sidebar">
+    <h2><a href="../index.html">Book Manager</a></h2>
+    <ul>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="./books.html">Books</a></li>
+        <li><a href="./search.html">Search</a></li>
+    </ul>
+</div>
+
+<div class="mt-8">
+    <a href="./dashboard.html"
+       class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 inline-block">
+        Back to Home
+    </a>
+</div>
+
+<div class="main-content">
+
+    <section class="panel" id="bookPanel" style="display:none">
+        <div class="flex-between">
+            <h2 style="margin:0">Search</h2>
+            <div class="controls">
+                <button id="refreshBtn" title="Reload list">Clear</button>
+            </div>
+        </div>
+
+        <div id="booksContainer" style="margin-top:12px">
+            <ul class="book-list" id="bookList"></ul>
+        </div>
+
+        <hr style="margin:16px 0"/>
+
+        <form id="bookForm">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" required/>
+
+            <div class="row">
+                <div>
+                    <label for="series">Series</label>
+                    <select id="series"></select>
+                </div>
+                <div>
+                    <label for="category">Category</label>
+                    <select id="category"></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label for="rating">Rating (1-5)</label>
+                    <select id="rating">
+                        <option value="">—</option>
+                        <option>⭐️</option>
+                        <option>⭐️⭐️</option>
+                        <option>⭐️⭐️⭐️</option>
+                        <option>⭐️⭐️⭐️⭐️</option>
+                        <option>⭐️⭐️⭐️⭐️⭐️</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="spice">Spice (0-5)</label>
+                    <select id="spice">
+                        <option value="">—</option>
+                        <option>0</option>
+                        <option>🌶️</option>
+                        <option>🌶️🌶️</option>
+                        <option>🌶️🌶️🌶️</option>
+                        <option>🌶️🌶️🌶️🌶️</option>
+                        <option>🌶️🌶️🌶️🌶️🌶️</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <label for="authors">Authors</label>
+            <select id="authors" multiple size="4" style="min-height:64px"></select>
+
+
+            <div style="margin-top:10px;display:flex;gap:8px">
+                <button type="submit">Search</button>
+                <button type="button" id="clearForm" style="background:#6b7280">Clear</button>
+            </div>
+        </form>
+    </section>
+
+    <div id="msg" style="position:fixed;right:18px;bottom:18px;z-index:999"></div>
+</div>
+
+<script type="module">
+    import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    let supabase = null; // Initialize supabase as null
+    let lookups = {categories: [], series: [], authors: []};
+
+    const $ = id => document.getElementById(id);
+    const showMessage = (text, timeout = 4000) => {
+        const d = document.createElement('div');
+        d.textContent = text;
+        d.style.background = '#111';
+        d.style.color = 'white';
+        d.style.padding = '8px 12px';
+        d.style.borderRadius = '8px';
+        d.style.marginTop = '8px';
+        $('msg').appendChild(d);
+        setTimeout(() => d.remove(), timeout);
+    };
+
+    async function connectSupabase() {
+        // Hardcoded Supabase URL and Key
+        const url = 'https://zloscdxigeruokwuppor.supabase.co/rest/v1/';
+        const key = 'sb_publishable_XsU1ogWFtYNKajfz7Oo69Q_dKYRYJfo';
+
+        if (!url || !key) {
+            showMessage('Supabase URL and anon key are missing in the script.');
+            return;
+        }
+
+        supabase = createClient(url, key);
+        // Directly show bookPanel on successful connection
+        $('bookPanel').style.display = 'block';
+        showMessage('Connected — loading data...');
+
+        // show current session user (if any) and subscribe to auth changes
+        try {
+            const {data: {session}} = await supabase.auth.getSession();
+            // setUserDisplay(session?.user ?? null); // Removed as currentUser display is gone
+        } catch (e) {
+            console.warn('getSession failed', e);
+        }
+
+        // subscribe to auth changes to update UI (removed setUserDisplay call)
+        supabase.auth.onAuthStateChange((event, session) => {
+            // setUserDisplay(session?.user ?? null); // Removed as currentUser display is gone
+        });
+
+        await loadLookups();
+        await loadBooks();
+    }
+
+    async function loadLookups() {
+        if (!supabase) return;
+        // categories
+        const {data: categories, error: catErr} = await supabase.from('categories').select('*').order('name');
+        if (catErr) {
+            console.error(catErr);
+            showMessage('Failed to load categories');
+        }
+        lookups.categories = categories || [];
+
+        const {data: series, error: serErr} = await supabase.from('series').select('*').order('name');
+        if (serErr) {
+            console.error(serErr);
+            showMessage('Failed to load series');
+        }
+        lookups.series = series || [];
+
+        // author table in your schema is named `author`
+        const {data: authors, error: authErr} = await supabase.from('author').select('*').order('last_name');
+        if (authErr) {
+            console.error(authErr);
+            showMessage('Failed to load authors');
+        }
+        lookups.authors = authors || [];
+
+        // populate selects
+        const sSeries = $('series');
+        sSeries.innerHTML = '';
+        const noneOpt = document.createElement('option');
+        noneOpt.value = '';
+        noneOpt.textContent = '— none —';
+        sSeries.appendChild(noneOpt);
+        lookups.series.forEach(s => {
+            const o = document.createElement('option');
+            o.value = s.id;
+            o.textContent = s.name;
+            sSeries.appendChild(o);
+        });
+
+        const sCat = $('category');
+        sCat.innerHTML = '';
+        const none2 = document.createElement('option');
+        none2.value = '';
+        none2.textContent = '— none —';
+        sCat.appendChild(none2);
+        lookups.categories.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.id;
+            o.textContent = c.name;
+            sCat.appendChild(o);
+        });
+
+        const sAuth = $('authors');
+        sAuth.innerHTML = '';
+        lookups.authors.forEach(a => {
+            const o = document.createElement('option');
+            o.value = a.id;
+            o.textContent = `${a.first_name} ${a.last_name}`;
+            sAuth.appendChild(o);
+        });
+    }
+
+    async function loadBooks() {
+        if (!supabase) return;
+        supabase = supabase + "/books";
+        const {data: books, error} = await supabase.from('books').select('*').order('read_date', {ascending: false});
+        if (error) {
+            console.error(error);
+            showMessage('Failed to load books');
+            return;
+        }
+
+        // fetch all book_author rows for mapping
+        const {data: baRows, error: baErr} = await supabase.from('book_author').select('*');
+        if (baErr) {
+            console.error(baErr);
+            showMessage('Failed to load book_author rows');
+        }
+        const baByBook = {};
+        (baRows || []).forEach(r => {
+            baByBook[r.book_id] = baByBook[r.book_id] || [];
+            baByBook[r.book_id].push(r.author_id);
+        });
+
+        const list = $('bookList');
+        list.innerHTML = '';
+        (books || []).forEach(b => {
+            const li = document.createElement('li');
+            const title = document.createElement('div');
+            title.textContent = b.title;
+            title.style.fontWeight = '600';
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            const cat = lookups.categories.find(c => c.id === b.category_id);
+            const ser = lookups.series.find(s => s.id === b.series_id);
+            const authorsFor = (baByBook[b.id] || []).map(aid => {
+                const a = lookups.authors.find(x => x.id === aid);
+                return a ? `${a.first_name} ${a.last_name}` : aid;
+            }).join(', ');
+            meta.innerHTML = `${ser ? `Series: ${ser.name} • ` : ''}${cat ? `Category: ${cat.name} • ` : ''}Rating: ${b.rating || '–'} • Spice: ${b.spice || '–'} • ${b.read_date ? `Read: ${b.read_date}` : ''}`;
+            const desc = document.createElement('div');
+            desc.className = 'small';
+            desc.textContent = b.description || '';
+
+            const actions = document.createElement('div');
+            actions.style.marginTop = '8px';
+            const del = document.createElement('button');
+            del.textContent = 'Delete';
+            del.className = 'danger';
+            del.onclick = async () => {
+                if (!confirm('Delete this book?')) return;
+                const {error} = await supabase.from('books').delete().eq('id', b.id);
+                if (error) {
+                    showMessage('Delete failed');
+                    console.error(error);
+                } else {
+                    showMessage('Deleted');
+                    loadBooks();
+                }
+            };
+            const authorsDiv = document.createElement('div');
+            authorsDiv.className = 'small';
+            authorsDiv.textContent = authorsFor ? `Authors: ${authorsFor}` : '';
+            actions.appendChild(authorsDiv);
+            actions.appendChild(del);
+
+            li.appendChild(title);
+            li.appendChild(meta);
+            li.appendChild(desc);
+            li.appendChild(actions);
+            list.appendChild(li);
+        });
+    }
+
+    async function handleAddBook(e) {
+        e.preventDefault();
+        if (!supabase) {
+            showMessage('Not connected');
+            return;
+        }
+        // require signed-in user for writes
+        const {data: {user}, error: userErr} = await supabase.auth.getUser();
+        if (userErr) {
+            console.error(userErr);
+        }
+        if (!user) {
+            showMessage('You must be signed in to add books');
+            return;
+        }
+        const title = $('title').value.trim();
+        if (!title) {
+            showMessage('Title required');
+            return;
+        }
+        const series_id = $('series').value || null;
+        const category_id = $('category').value || null;
+        const rating = $('rating').value ? parseInt($('rating').value) : null;
+        const spice = $('spice').value ? parseInt($('spice').value) : null;
+        const read_date = $('read_date').value || null;
+        const description = $('description').value || null;
+        const selectedAuthors = Array.from($('authors').selectedOptions).map(o => parseInt(o.value));
+
+        const payload = {title, series_id, category_id, rating, spice, description, read_date, user_id: user.id};
+        const {data, error} = await supabase.from('books').insert(payload).select().single();
+        if (error) {
+            console.error(error);
+            showMessage('Failed to insert book');
+            return;
+        }
+        const bookId = data.id;
+        // insert book_author rows
+        if (selectedAuthors.length) {
+            const rows = selectedAuthors.map(aid => ({book_id: bookId, author_id: aid}));
+            const {error: baErr} = await supabase.from('book_author').insert(rows);
+            if (baErr) {
+                console.error(baErr);
+                showMessage('Failed to link authors');
+            }
+        }
+        showMessage('Book added');
+        $('bookForm').reset();
+        await loadBooks();
+    }
+
+    async function searchBooks(e) {
+
+    }
+
+
+    $('refreshBtn').addEventListener('click', () => loadBooks());
+    // $('bookForm').addEventListener('submit', handleAddBook);
+    $('bookForm').addEventListener('submit', searchBooks);
+    $('clearForm').addEventListener('click', () => $('bookForm').reset());
+
+    // Automatically connect on page load
+    connectSupabase();
+</script>
+
+
+<!-- STEP 2: Load your custom JavaScript file second -->
+<script src="../scripts/app.js"></script>
+
+</body>
+
+</html>

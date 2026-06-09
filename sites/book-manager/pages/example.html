@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase CRUD App</title>
+</head>
+<body>
+
+<h1>Product Manager</h1>
+
+<!-- 1. FORM FOR CREATING AN ITEM -->
+<fieldset>
+    <legend>Add New Product</legend>
+    <form id="productForm">
+        <input type="text" id="prodName" placeholder="Product Name" required>
+        <input type="number" id="prodPrice" placeholder="Price" step="0.01" required>
+        <button type="submit">Save Product</button>
+    </form>
+</fieldset>
+
+<br>
+
+<!-- 2. BUTTON FOR READING/LOADING ITEMS -->
+<button id="loadBtn">Load All Products</button>
+
+<!-- 3. CONTAINER TO DISPLAY THE DATA -->
+<div id="productDisplay"></div>
+
+<!-- Scripts -->
+<script src="https://jsdelivr.net"></script>
+<script src="../scripts/example.js"></script>
+</body>
+</html>

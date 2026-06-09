@@ -1,39 +1,132 @@
-<!doctype html>
+<!--<!doctype html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="utf-8"/>-->
+<!--    <meta name="viewport" content="width=device-width,initial-scale=1"/>-->
+<!--    <title>Admin - Book Manager</title>-->
+<!--    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">-->
+<!--    <link rel="stylesheet" href="../css/admin.css">-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<h1>Admin</h1>-->
+
+<!--<div class="buttonGrp">-->
+<!--    <a href="../index.html" class="navBtn">Home</a>-->
+<!--</div>-->
+
+<!--<section class="panel">-->
+<!--    <h2 style="margin-top:0">Supabase Connection</h2>-->
+<!--    <div class="row">-->
+<!--        <div>-->
+<!--            <label for="supabaseKey">Secret Key</label>-->
+<!--            <input id="supabaseKey" type="text" placeholder="secret-key"/>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="buttonGrp">-->
+<!--        <button id="connectBtn">Connect</button>-->
+<!--        <button id="disconnectBtn" style="background:#6b7280">Disconnect</button>-->
+<!--        <div class="small inline" id="connectionStatus">Not connected</div>-->
+<!--    </div>-->
+<!--    <p class="muted" style="margin-top:10px">Tip: store your URL & anon key locally (saved in localStorage). For-->
+<!--        production use server-side keys and secure handling.</p>-->
+<!--</section>-->
+
+
+<!--&lt;!&ndash; Use module so ES module `import` in admin.js works in the browser &ndash;&gt;-->
+<!--<script type="module" src="../scripts/admin.js"></script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>Admin - Book Manager</title>
-    <link rel="stylesheet" href="../css/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tracker</title>
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>-->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 2rem;
+            max-width: 800px;
+        }
+
+        .book-card {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 300px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Admin</h1>
-
-<div class="buttonGrp">
-    <a href="../index.html" class="navBtn">Home</a>
+<!-- PUBLIC VIEW CONTAINER -->
+<div id="public-view">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>My Personal Library</h1>
+        <a href="#admin" id="admin-nav-btn">Admin Portal</a>
+    </header>
+    <hr>
+    <div id="books-list">Loading books...</div>
 </div>
 
-<section class="panel">
-    <h2 style="margin-top:0">Supabase Connection</h2>
-    <div class="row">
-        <div>
-            <label for="supabaseKey">Secret Key</label>
-            <input id="supabaseKey" type="text" placeholder="secret-key"/>
+<!-- HIDDEN ADMIN VIEW CONTAINER -->
+<div id="admin-view" class="hidden">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Admin Panel</h1>
+        <a href="#">← Back to Library</a>
+    </header>
+    <hr>
+
+    <!-- Step A: Shown if NOT logged in -->
+    <div id="login-section">
+        <h3>Admin Login</h3>
+        <form id="login-form">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+
+    <!-- Step B: Shown ONLY if successfully logged in -->
+    <div id="dashboard-section" class="hidden">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <p>Welcome back, Authenticated User!</p>
+            <button id="logout-btn">Log Out</button>
         </div>
+
+        <h3>Add a New Book</h3>
+        <form id="add-book-form">
+            <label for="title">Book Title</label>
+            <input type="text" id="title" placeholder="Book Title" required>
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Description"></textarea>
+            <label for="authors">Authors (comma separated)</label>
+            <input type="text" id="authors" placeholder="Authors (comma separated)" required>
+            <label for="tropes">Tropes (comma separated)</label>
+            <input type="text" id="tropes" placeholder="Tropes (comma separated)">
+            <button type="submit">Save Book to Library</button>
+        </form>
     </div>
-    <div class="buttonGrp">
-        <button id="connectBtn">Connect</button>
-        <button id="disconnectBtn" style="background:#6b7280">Disconnect</button>
-        <div class="small inline" id="connectionStatus">Not connected</div>
-    </div>
-    <p class="muted" style="margin-top:10px">Tip: store your URL & anon key locally (saved in localStorage). For
-        production use server-side keys and secure handling.</p>
-</section>
+</div>
 
-
-<!-- Use module so ES module `import` in admin.js works in the browser -->
-<script type="module" src="../scripts/admin.js"></script>
-
+<script src="../scripts/admin.js"></script>
 </body>
 </html>

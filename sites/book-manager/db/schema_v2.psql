@@ -1,0 +1,113 @@
+-- Main Lookup Tables
+CREATE TABLE author (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE narrator (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE series (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tagging/Attribute Tables
+CREATE TABLE trope (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE creatures (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- Main book Table
+CREATE TABLE book (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    cover_image_url VARCHAR(500), -- For UI rendering
+    isbn_13 VARCHAR(13) UNIQUE,    -- For easy external API lookups
+    series_id INT REFERENCES series(id) ON DELETE SET NULL,
+    series_number DECIMAL(4,2),
+    book_rating DECIMAL(3,1) CHECK (book_rating >= 0 AND book_rating <= 5), -- Changed INT to DECIMAL for half-stars
+    spice_level INT CHECK (spice_level >= 0 AND spice_level <= 5),
+    total_pages INT CHECK (total_pages > 0), -- Vital for progress tracking calculations
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reading Logs Table
+CREATE TABLE reading_log (
+    id SERIAL PRIMARY KEY,
+    book_id INT REFERENCES book(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('Want to Read', 'Reading', 'Completed', 'DNF')),
+    format VARCHAR(50) NOT NULL CHECK (format IN ('Physical', 'Ebook', 'Audiobook')),
+
+    -- Progress Tracking
+    current_page_or_percent INT DEFAULT 0, -- Store page number or whole percentage
+
+    -- Dates & Metrics
+    date_started DATE,
+    date_finished DATE,
+    narrator_rating DECIMAL(3,1) CHECK (narrator_rating >= 0 AND narrator_rating <= 5),
+
+    -- Thoughts
+    notes TEXT,          -- Private notes/bookmarks
+    final_review TEXT,   -- Final wrap-up review text
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Junction Tables (Many-to-Many)
+CREATE TABLE book_author (
+    book_id INT REFERENCES book(id) ON DELETE CASCADE,
+    author_id INT REFERENCES author(id) ON DELETE CASCADE, -- Changed to CASCADE to clear joint-mapping safely
+    PRIMARY KEY (book_id, author_id)
+);
+
+-- FIXED: narrator are now mapped to the reading log entry, not the permanent book record!
+CREATE TABLE reading_log_narrator (
+    reading_log_id INT REFERENCES reading_log(id) ON DELETE CASCADE,
+    narrator_id INT REFERENCES narrator(id) ON DELETE CASCADE,
+    PRIMARY KEY (reading_log_id, narrator_id)
+);
+
+CREATE TABLE book_trope (
+    book_id INT REFERENCES book(id) ON DELETE CASCADE,
+    trope_id INT REFERENCES trope(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, trope_id)
+);
+
+CREATE TABLE book_creatures (
+    book_id INT REFERENCES book(id) ON DELETE CASCADE,
+    creature_id INT REFERENCES creatures(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, creature_id)
+);
+
+CREATE TABLE book_category (
+    book_id INT REFERENCES book(id) ON DELETE CASCADE,
+    category_id INT REFERENCES category(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, category_id)
+);
+
+-- Performance Optimization Indexes
+CREATE INDEX idx_book_series ON book(series_id);
+CREATE INDEX idx_reading_log_book ON reading_log(book_id);
+CREATE INDEX idx_book_isbn ON book(isbn_13);
+-- This blocks "SARAH J. MAAS" if "Sarah J. Maas" already exists
+CREATE UNIQUE INDEX idx_authors_name_lower ON authors (LOWER(name));
+CREATE UNIQUE INDEX idx_narrators_name_lower ON narrators (LOWER(name));
+
+

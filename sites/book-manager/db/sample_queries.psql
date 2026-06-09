@@ -1,0 +1,23 @@
+-- Sample Insert Statements
+INSERT INTO categories (name) VALUES ('Fantasy'), ('Romance'), ('Science Fiction');
+
+INSERT INTO series (name) VALUES ('Series One'), ('Series Two');
+
+INSERT INTO author (first_name, last_name) VALUES ('Jane', 'Doe'), ('John', 'Smith');
+
+INSERT INTO narrator (first_name, last_name) VALUES ('Voice', 'Actor'), ('Audio', 'Pro');
+
+INSERT INTO tropes (name) VALUES ('Slow Burn'), ('Enemies to Lovers'), ('Found Family');
+
+INSERT INTO creatures (name) VALUES ('Dragon'), ('Phoenix'), ('Unicorn');
+
+INSERT INTO books (title, series_id, series_order, category_id, rating, spice, description, read_date)
+VALUES ('Book One', 1, 1, 1, 5, 3, 'An amazing fantasy novel', '2024-01-15');
+
+INSERT INTO book_author (book_id, author_id) VALUES (1, 1);
+
+INSERT INTO book_narrator (book_id, narrator_id, performance_rating) VALUES (1, 1, 5);
+
+INSERT INTO book_tropes (book_id, trope_id) VALUES (1, 1), (1, 2);
+
+INSERT INTO book_creatures (book_id, creature_id) VALUES (1, 1);

@@ -1,0 +1,68 @@
+-- ADMIN WRITES
+
+CREATE POLICY "Allow admin writes" ON author FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON narrator FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON series FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON trope FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON creatures FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON category FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON book FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON reading_log FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON book_author FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON reading_log_narrator FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON book_trope FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON book_creatures FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+CREATE POLICY "Allow admin writes" ON book_category FOR ALL TO authenticated
+  USING (auth.uid() = '');
+
+-- PUBLIC READ
+create policy "Enable read access for all users" on "public"."author"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."narrator"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."series"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."trope"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."creatures"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."category"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."book"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."reading_log"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."book_author"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."reading_log_narrator"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."book_trope"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."book_creatures"
+as PERMISSIVE for SELECT to public using (true);
+create policy "Enable read access for all users" on "public"."book_category"
+as PERMISSIVE for SELECT to public using (true);

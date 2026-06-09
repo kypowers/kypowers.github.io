@@ -11,6 +11,11 @@
     font-size: 20px;
 }
 
+.sidebar h2 a {
+    text-decoration: none;
+    color: white;
+}
+
 .sidebar ul {
     list-style: none;
 }

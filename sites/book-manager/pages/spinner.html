@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Spinner Example</title>
+    <style>
+        /* 1. Full-screen overlay to block the content while loading */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff; /* Background color of the loading screen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Ensures it stays on top of everything */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* 2. The CSS Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 6px solid #e5e7eb; /* Light grey track background */
+            border-top: 6px solid #3b82f6; /* Blue moving segment */
+            border-radius: 50%; /* Makes the square border a perfect circle */
+            animation: spin 1s linear infinite; /* Keeps it rotating forever */
+        }
+
+        /* 3. The rotation animation logic */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Helper class to hide the overlay cleanly */
+        .loader-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Standard page styling (just for presentation) */
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loader-overlay" id="pageLoader">
+    <div class="spinner"></div>
+</div>
+
+<!-- Your Main Website Content -->
+<h1>Welcome to My Website</h1>
+<p>This content is hidden until the full page has completely loaded.</p>
+
+<!-- JavaScript to handle the hiding behavior -->
+<!--<script>-->
+<!--    window.addEventListener("load", () => {-->
+<!--        const loader = document.getElementById("pageLoader");-->
+<!--        // Adds the hidden class once all resources (images, styles) load-->
+<!--        loader.classList.add("loader-hidden");-->
+<!--    });-->
+<!--</script>-->
+
+<!-- The HTML loader element remains exactly the same -->
+
+
+<script>
+    // Select the loader DOM element once
+    const loader = document.getElementById("pageLoader");
+
+    /**
+     * Shows the loading symbol and blocks the screen.
+     */
+    function startLoader() {
+        loader.classList.remove("loader-hidden");
+    }
+
+    /**
+     * Hides the loading symbol and reveals the webpage.
+     */
+    function stopLoader() {
+        loader.classList.add("loader-hidden");
+    }
+</script>
+
+
+</body>
+</html>

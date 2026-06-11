@@ -1,58 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Book Tracker</title>
-    <!--    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>-->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <style>
-        .hidden {
-            display: none !important;
-        }
-
-        body {
-            font-family: system-ui, sans-serif;
-            margin: 2rem;
-            max-width: 800px;
-        }
-
-        .book-card {
-            border: 1px solid #ccc;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            max-width: 300px;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/global.css">
+    <!--    <link rel="stylesheet" href="../css/dashboard.css">-->
+    <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
 
-<!-- PUBLIC VIEW CONTAINER -->
-<div id="public-view">
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>My Personal Library</h1>
-        <a href="#admin" id="admin-nav-btn">Admin Portal</a>
-    </header>
-    <hr>
-    <div id="books-list">Loading books...</div>
-</div>
+<div id="sidebar-container"></div>
+<script src="../scripts/components.js"></script>
 
-<!-- HIDDEN ADMIN VIEW CONTAINER -->
-<div id="admin-view" class="hidden">
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Admin Panel</h1>
-        <a href="#">← Back to Library</a>
-    </header>
-    <hr>
+<div class="main-content">
 
-    <!-- Step A: Shown if NOT logged in -->
     <div id="login-section">
         <h3>Admin Login</h3>
         <form id="login-form">
@@ -67,7 +30,7 @@
     <!-- Step B: Shown ONLY if successfully logged in -->
     <div id="dashboard-section" class="hidden">
         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-            <p>Welcome back, Authenticated User!</p>
+            <h2>Welcome back!</h2>
             <button id="logout-btn">Log Out</button>
         </div>
 
@@ -85,7 +48,7 @@
         </form>
     </div>
 </div>
+<script type="module" src="../scripts/admin.js"></script>
 
-<script src="../scripts/admin.js"></script>
 </body>
 </html>

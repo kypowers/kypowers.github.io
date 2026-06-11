@@ -1,3 +1,5 @@
+import {supabase} from './supabaseClient.js';
+
 // ==========================================
 // 1. DYNAMIC LIBRARY LOADER (Bypasses CORS/Modules)
 // ==========================================
@@ -15,84 +17,19 @@ function loadSupabaseLibrary() {
     });
 }
 
-// ==========================================
-// 2. SAFE CONFIGURATION & INITIALIZATION
-// ==========================================
-const SUPABASE_URL = 'https://zloscdxigeruokwuppor.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_XsU1ogWFtYNKajfz7Oo69Q_dKYRYJfo';
-
-let supabaseClient = null;
-
-// ==========================================
-// 3. SECURE APP BOOTSTRAPPER
-// ==========================================
-async function startApplication() {
-    const listDiv = document.getElementById('books-list');
-
-    try {
-        // Force the browser to successfully map the library first
-        const supabaseLib = await loadSupabaseLibrary();
-
-        // Initialize the client using a unique local variable name
-        supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log("Supabase Client initialized successfully!");
-
-        // Run your application routing
-        handleRouting();
-
-    } catch (err) {
-        console.error(err);
-        if (listDiv) {
-            listDiv.innerHTML = `❌ System Boot Failure: ${err.message}. Please refresh the page.`;
-        }
-    }
-}
-
-// Replace your old DOMContentLoaded listener at the bottom of app.js with this one:
-document.addEventListener('DOMContentLoaded', startApplication);
-
-
-// import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-// import {createClient} from 'https://unpkg.com';
-
-// const SUPABASE_URL = 'https://zloscdxigeruokwuppor.supabase.co';
-// const SUPABASE_ANON_KEY = '';
-//
-//
-// const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // --- UI DOM ELEMENTS ---
-const publicView = document.getElementById('public-view');
-const adminView = document.getElementById('admin-view');
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const loginForm = document.getElementById('login-form');
 const addBookForm = document.getElementById('add-book-form');
 const logoutBtn = document.getElementById('logout-btn');
 
-// --- HASH ROUTING CONTROLLER ---
-function handleRouting() {
-    const hash = window.location.hash;
-
-    if (hash === '#admin') {
-        publicView.classList.add('hidden');
-        adminView.classList.remove('hidden');
-        checkUserSession(); // Determine if we show login form or add book dashboard
-    } else {
-        adminView.classList.add('hidden');
-        publicView.classList.remove('hidden');
-        fetchPublicBooks(); // Refresh list when returning to view screen
-    }
-}
-
-// Listen for back/forward browser movement or link clicks
-window.addEventListener('hashchange', handleRouting);
-document.addEventListener('DOMContentLoaded', handleRouting);
 
 // --- AUTHENTICATION MONITOR ---
 async function checkUserSession() {
     // Fetches token automatically saved in localStorage by the Supabase SDK
-    const {data: {session}} = await supabaseClient.auth.getSession();
+    const {data: {session}} = await supabase.auth.getSession();
 
     if (session) {
         loginSection.classList.add('hidden');
@@ -109,7 +46,7 @@ loginForm.addEventListener('submit', async (e) => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    const {error} = await supabaseClient.auth.signInWithPassword({email, password});
+    const {error} = await supabase.auth.signInWithPassword({email, password});
 
     if (error) {
         alert(`Login failed: ${error.message}`);
@@ -121,7 +58,7 @@ loginForm.addEventListener('submit', async (e) => {
 
 // Handle logout actions
 logoutBtn.addEventListener('click', async () => {
-    await supabaseClient.auth.signOut();
+    await supabase.auth.signOut();
     window.location.hash = ''; // Boot user back to public library page
 });
 
@@ -132,7 +69,7 @@ async function fetchPublicBooks() {
     listDiv.innerHTML = "Loading books...";
 
     try {
-        const {data, error} = await supabaseClient
+        const {data, error} = await supabase
             .from('book')
             .select(`id, title, description`);
 
@@ -170,7 +107,7 @@ addBookForm.addEventListener('submit', async (e) => {
     };
 
     // Execute the secure PostgreSQL database function we saved in the last turn
-    const {data, error} = await supabaseClient.rpc('insert_complete_book', {book_payload: payload});
+    const {data, error} = await supabase.rpc('insert_complete_book', {book_payload: payload});
 
     if (error) {
         alert(`Error saving book: ${error.message}`);

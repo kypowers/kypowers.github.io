@@ -1,16 +1,20 @@
-import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+//
+//
+// const SUPABASE_URL = 'https://zloscdxigeruokwuppor.supabase.co';
+// const SUPABASE_ANON_KEY = 'sb_publishable_XsU1ogWFtYNKajfz7Oo69Q_dKYRYJfo';
+//
+// const supabase = (SUPABASE_URL.includes('<REPLACE') || SUPABASE_ANON_KEY.includes('<REPLACE'))
+//     ? null
+//     : createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-
-const SUPABASE_URL = 'https://zloscdxigeruokwuppor.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_XsU1ogWFtYNKajfz7Oo69Q_dKYRYJfo';
-
-const supabase = (SUPABASE_URL.includes('<REPLACE') || SUPABASE_ANON_KEY.includes('<REPLACE'))
-    ? null
-    : createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import {supabase} from './supabaseClient.js';
+import {startLoader, stopLoader} from './spinner.js';
 
 const BOOKS_PER_PAGE = 30;
 let currentPage = 0;
 let totalBooks = 0;
+let booksReadYear = 0;
 
 async function getTotalBooksCount() {
     if (!supabase) return 0;
@@ -24,6 +28,25 @@ async function getTotalBooksCount() {
         return count || 0;
     } catch (err) {
         console.error('Error getting book count:', err);
+        return 0;
+    }
+}
+
+async function getBooksReadThisYear() {
+    if (!supabase) return 0;
+
+    try {
+        const currentYear = new Date().getFullYear();
+        const {count, error} = await supabase
+            .from('book')
+            .select('*', {count: 'exact', head: true})
+            .gte('created_at', `${currentYear}-01-01`)
+            .lte('created_at', `${currentYear}-12-31`);
+
+        if (error) throw error;
+        return count || 0;
+    } catch (err) {
+        console.error('Error getting books read this year:', err);
         return 0;
     }
 }
@@ -277,4 +300,63 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeBookModal();
         }
     });
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Turn on spinner while initial data loads
+    try {
+        startLoader();
+
+        // Get total count first and update UI
+        totalBooks = await getTotalBooksCount();
+        const totalCountEl = document.getElementById('total-books-count');
+        if (totalCountEl) {
+            totalCountEl.textContent = String(totalBooks ?? 0);
+        }
+
+        totalBooks = await getBooksReadThisYear();
+        const totalYearCount = document.getElementById('books-read-this-year-count');
+        if (totalYearCount) {
+            totalYearCount.textContent = String(totalBooks ?? 0);
+        }
+
+        // Load first page of books
+        await loadBooks(0);
+
+        // Set up pagination event listeners
+        document.getElementById('prev-btn')?.addEventListener('click', () => {
+            if (currentPage > 0) loadBooks(currentPage - 1);
+        });
+
+        document.getElementById('next-btn')?.addEventListener('click', () => {
+            const totalPages = Math.ceil(totalBooks / BOOKS_PER_PAGE);
+            if (currentPage < totalPages - 1) loadBooks(currentPage + 1);
+        });
+
+        // Set up modal event listeners
+        const modal = document.getElementById('book-modal');
+        const modalClose = document.getElementById('modal-close');
+
+        // Close modal when close button is clicked
+        modalClose?.addEventListener('click', closeBookModal);
+
+        // Close modal when clicking outside the modal content
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeBookModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeBookModal();
+            }
+        });
+    } catch (err) {
+        console.error('Startup failed:', err);
+    } finally {
+        // Always stop loader even on error
+        stopLoader();
+    }
 });
